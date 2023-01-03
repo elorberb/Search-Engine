@@ -1,4 +1,3 @@
-
 def recall_at_k(y_true, y_pred, k=40):
     """
       Calculate the recall at k for a given list of true items and a list of predicted items.
@@ -61,7 +60,7 @@ def r_precision(y_true, y_pred):
 
     # Get the top-R predicted items, where R is the number of true/relevant items
     R = len(y_true)
-    y_pred = predicted_list[:R]
+    y_pred = y_pred[:R]
 
     # Use set intersection to calculate the intersection of the two lists
     inter = set(y_true) & set(y_pred)
@@ -145,10 +144,45 @@ def average_precision(y_true, y_prod, k=40):
         # If the current item is relevant, increment the relevant item count and add the precision score
         if pred[i] in y_true:
             relevant += 1
-            total += relevant / (i+1)
+            total += relevant / (i + 1)
 
     # If no relevant items are found, return 0
     if relevant == 0:
         return 0
     # Calculate and return the Average Precision
     return round(total / relevent, 3)
+
+
+def evaluate_all_metrics(y_true, y_pred, k, print_scores=True):
+    """
+    Evaluates the given y_pred using various metrics.
+
+    Parameters:
+    y_true (list): A list of lists of ground truth documents for each query
+    y_pred (list): A list of lists of predicted documents for each query
+    k (int): The rank at which to compute the metrics
+    print_scores (bool, optional): Whether to print the scores for each metric. Default is True.
+
+    Returns:
+    dict: A dictionary mapping from metric names to lists of scores for each query
+    """
+    metrices = {
+        'recall@k': recall_at_k,
+        'precision@k': precision_at_k,
+        'f_score@k': f_score,
+        'r-precision': r_precision,
+        'MRR@k': reciprocal_rank_at_k,
+        'MAP@k': average_precision,
+    }
+
+    scores = {name: [] for name in metrices}
+
+    for ground_true, predicted in zip(y_true, y_pred):
+        for name, metric in metrices.items():
+            scores[name].append(metric(ground_true, predicted, k=k))
+
+    if print_scores:
+        for name, values in scores.items():
+            print(name, sum(values) / len(values))
+
+    return scores
