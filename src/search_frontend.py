@@ -31,11 +31,12 @@ def search():
     res = []
     query = request.args.get('query', '')
     if len(query) == 0:
-      return jsonify(res)
+        return jsonify(res)
     # BEGIN SOLUTION
 
     # END SOLUTION
     return jsonify(res)
+
 
 @app.route("/search_body")
 def search_body():
@@ -56,11 +57,12 @@ def search_body():
     res = []
     query = request.args.get('query', '')
     if len(query) == 0:
-      return jsonify(res)
+        return jsonify(res)
     # BEGIN SOLUTION
 
     # END SOLUTION
     return jsonify(res)
+
 
 @app.route("/search_title")
 def search_title():
@@ -82,11 +84,13 @@ def search_title():
     res = []
     query = request.args.get('query', '')
     if len(query) == 0:
-      return jsonify(res)
+        return jsonify(res)
+
     # BEGIN SOLUTION
 
     # END SOLUTION
     return jsonify(res)
+
 
 @app.route("/search_anchor")
 def search_anchor():
@@ -109,11 +113,12 @@ def search_anchor():
     res = []
     query = request.args.get('query', '')
     if len(query) == 0:
-      return jsonify(res)
+        return jsonify(res)
     # BEGIN SOLUTION
-    
+
     # END SOLUTION
     return jsonify(res)
+
 
 @app.route("/get_pagerank", methods=['POST'])
 def get_pagerank():
@@ -134,11 +139,12 @@ def get_pagerank():
     res = []
     wiki_ids = request.get_json()
     if len(wiki_ids) == 0:
-      return jsonify(res)
+        return jsonify(res)
     # BEGIN SOLUTION
 
     # END SOLUTION
     return jsonify(res)
+
 
 @app.route("/get_pageview", methods=['POST'])
 def get_pageview():
@@ -161,7 +167,7 @@ def get_pageview():
     res = []
     wiki_ids = request.get_json()
     if len(wiki_ids) == 0:
-      return jsonify(res)
+        return jsonify(res)
     # BEGIN SOLUTION
 
     # END SOLUTION
