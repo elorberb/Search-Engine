@@ -1,4 +1,5 @@
 from flask import Flask, request, jsonify
+# from backend import *
 
 
 class MyFlaskApp(Flask):
@@ -33,6 +34,8 @@ def search():
     if len(query) == 0:
         return jsonify(res)
     # BEGIN SOLUTION
+    # res = backend.search_body(query)
+
 
     # END SOLUTION
     return jsonify(res)
@@ -59,7 +62,7 @@ def search_body():
     if len(query) == 0:
         return jsonify(res)
     # BEGIN SOLUTION
-
+    # res = backend.search(query)
     # END SOLUTION
     return jsonify(res)
 
@@ -112,6 +115,7 @@ def search_anchor():
     '''
     res = []
     query = request.args.get('query', '')
+    print(query)
     if len(query) == 0:
         return jsonify(res)
     # BEGIN SOLUTION
