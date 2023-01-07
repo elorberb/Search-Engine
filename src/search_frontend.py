@@ -90,7 +90,7 @@ def search_title():
         return jsonify(res)
 
     # BEGIN SOLUTION
-
+    res = backend.get_title(query)
     # END SOLUTION
     return jsonify(res)
 

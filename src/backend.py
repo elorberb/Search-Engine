@@ -21,7 +21,7 @@ os.environ["GOOGLE_APPLICATION_CREDENTIALS"]=r"C:\Users\ofi1\Pycharm_Projects\BG
 
 BUCKET_POSTINGS_BODY = 'postings_body/postings_gcp'
 
-
+BUCKET_POSTINGS_TITLE = "postings_title/postings_gcp"
 
 class backend:
 
@@ -164,8 +164,7 @@ class backend:
         query_tf = defaultdict(int)
         query_tfidf = {}
 
-        for w, posting_list in self.body_index.posting_lists_iter(BUCKET_POSTINGS_BODY,
-                                                                  query):  # Iterate over each posting list
+        for w, posting_list in self.body_index.posting_lists_iter(BUCKET_POSTINGS_BODY,query):  # Iterate over each posting list
             query_doc_tfidf[w] = self.tf_idf(posting_list, self.body_index.DL)  # save tfidf for each doc
             query_idf[w] = 1 + math.log(self.N / len(posting_list), 10)  # save udf of each word in query
 
@@ -199,8 +198,22 @@ class backend:
         cosine_sim_body = self.cosine_similarity(df, df_query_tfidf)  # calculate cosine similarity
         return cosine_sim_body, df.columns
 
-    def get_title(self,query):
-        pass
+    def get_title(self, query):
+
+        """
+        Params:
+        ------
+        query: list of tokens. i.e.: ["hello", "world"]
+        ======
+        Sorting all relevent docs of query with the title index
+        Output:
+        ------
+        List of doc_ids sorted by anchor relevence
+        """
+
+        res = self.get_kind(query, self.title_index, BUCKET_POSTINGS_TITLE)
+        res = sorted(res.items(), key=lambda x: x[1], reverse=True)
+        return [x for x, y in res]
 
     def get_anchor(self,query):
         pass
