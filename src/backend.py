@@ -8,6 +8,7 @@ from pandas._config.config import reset_option
 from evaluation import Evaluation
 import json
 from nltk.corpus import stopwords
+
 nltk.download('stopwords')
 from time import time as t
 import re
@@ -17,33 +18,35 @@ import pandas as pd
 import numpy as np
 from collections import defaultdict
 
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"]=r"C:\Users\ofi1\Pycharm_Projects\BGU_Projects\Search-Engine\src\data-retrieval-project-d9f8e61f8a29 (1).json"
+os.environ[
+    "GOOGLE_APPLICATION_CREDENTIALS"] = r"C:\Users\ofi1\Pycharm_Projects\BGU_Projects\Search-Engine\src\data-retrieval-project-d9f8e61f8a29 (1).json"
 
 BUCKET_POSTINGS_BODY = 'postings_body/postings_gcp'
 
 BUCKET_POSTINGS_TITLE = "postings_title/postings_gcp"
 
-class backend:
+
+class Backend:
 
     def __init__(self):
         """
            Put super indexes and relevent files in main memory to save time during queries
            """
 
-        self.body_index = pickle.load(open("data/bodyindex.pkl", "rb"))
-        self.body_stem_index = pickle.load(open("data/body_stem_index.pkl", "rb"))
-        self.title_index = pickle.load(open("data/title_index.pkl", "rb"))
-        self.anchor_index = pickle.load(open("data/anchor_index.pkl", "rb"))
-        self.page_rank = pd.read_csv(gzip.open('data/page_rank.csv.gz', 'rb'))
-        self.page_view = pickle.load(open('data/page_view.pkl', 'rb'))  # October Page view has missing documents
-        self.page_view_12 = pickle.load(
-            open('data/pageviews-202112.pkl', 'rb'))  # Use December 2021 page views to include missing docs
-        self.anchor_double_index = pickle.load(open('data/anchor_double_index.pkl', 'rb'))
-        self.bucket_name = 'bodyindex'
-        self.client = storage.Client()
-        self.bucket = self.client.get_bucket(self.bucket_name)
+        # self.body_index = pickle.load(open("data/bodyindex.pkl", "rb"))
+        # self.body_stem_index = pickle.load(open("data/body_stem_index.pkl", "rb"))
+        self.title_index = pickle.load(open("src/indexes/index_title.pkl", "rb"))
+        # self.anchor_index = pickle.load(open("data/anchor_index.pkl", "rb"))
+        # self.page_rank = pd.read_csv(gzip.open('data/page_rank.csv.gz', 'rb'))
+        # self.page_view = pickle.load(open('data/page_view.pkl', 'rb'))  # October Page view has missing documents
+        # self.page_view_12 = pickle.load(
+        #     open('data/pageviews-202112.pkl', 'rb'))  # Use December 2021 page views to include missing docs
+        # self.anchor_double_index = pickle.load(open('data/anchor_double_index.pkl', 'rb'))
+        # self.bucket_name = 'bodyindex'
+        # self.client = storage.Client()
+        # self.bucket = self.client.get_bucket(self.bucket_name)
 
-    def preprocess(self,query):
+    def preprocess(self, query):
         """
         Preprocesses the given query by performing the following steps:
         1. Extract words from the query using a regular expression
@@ -77,8 +80,7 @@ class backend:
 
         return tokens
 
-
-    def tf_idf(posting_list, DL, N):
+    def tf_idf(self, posting_list, DL, N):
         """
         Calculate the term frequency-inverse document frequency (TF-IDF) for a word.
 
@@ -98,7 +100,7 @@ class backend:
         return tfidf
 
 
-    def cosine_similarity(documents, query):
+    def cosine_similarity(self, documents, query):
         """
         Calculate the cosine similarity between a list of documents and a query document.
 
@@ -135,11 +137,10 @@ class backend:
 
         return filtered_scores
 
-    def bm25(self,query):
+    def bm25(self, query):
         pass
 
-
-    def main_search(self,query):
+    def main_search(self, query):
         pass
 
     def get_body(self, query):
@@ -164,7 +165,8 @@ class backend:
         query_tf = defaultdict(int)
         query_tfidf = {}
 
-        for w, posting_list in self.body_index.posting_lists_iter(BUCKET_POSTINGS_BODY,query):  # Iterate over each posting list
+        for w, posting_list in self.body_index.posting_lists_iter(BUCKET_POSTINGS_BODY,
+                                                                  query):  # Iterate over each posting list
             query_doc_tfidf[w] = self.tf_idf(posting_list, self.body_index.DL)  # save tfidf for each doc
             query_idf[w] = 1 + math.log(self.N / len(posting_list), 10)  # save udf of each word in query
 
@@ -215,15 +217,14 @@ class backend:
         res = sorted(res.items(), key=lambda x: x[1], reverse=True)
         return [x for x, y in res]
 
-    def get_anchor(self,query):
+    def get_anchor(self, query):
         pass
 
-    def get_view(self,query):
+    def get_view(self, query):
         pass
 
     def get_page_rank(self):
         pass
-
 
 
 if __name__ == '__main__':
