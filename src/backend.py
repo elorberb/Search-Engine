@@ -1,29 +1,15 @@
 import pickle
 import gzip
-import pandas as pd
-import numpy as np
 import math
-from google.cloud import storage
-from pandas._config.config import reset_option
-from evaluation import Evaluation
 import json
+import nltk
 from nltk.corpus import stopwords
-
-nltk.download('stopwords')
-from time import time as t
 import re
 import os
-from inverted_index_gcp import InvertedIndex, MultiFileReader
+from src.inverted_index_colab import *
 import pandas as pd
 import numpy as np
 from collections import defaultdict
-
-os.environ[
-    "GOOGLE_APPLICATION_CREDENTIALS"] = r"C:\Users\ofi1\Pycharm_Projects\BGU_Projects\Search-Engine\src\data-retrieval-project-d9f8e61f8a29 (1).json"
-
-BUCKET_POSTINGS_BODY = 'postings_body/postings_gcp'
-
-BUCKET_POSTINGS_TITLE = "postings_title/postings_gcp"
 
 
 class Backend:
@@ -33,201 +19,233 @@ class Backend:
            Put super indexes and relevent files in main memory to save time during queries
            """
 
-        # self.body_index = pickle.load(open("data/bodyindex.pkl", "rb"))
-        # self.body_stem_index = pickle.load(open("data/body_stem_index.pkl", "rb"))
-        self.title_index = pickle.load(open("src/indexes/index_title.pkl", "rb"))
-        # self.anchor_index = pickle.load(open("data/anchor_index.pkl", "rb"))
-        # self.page_rank = pd.read_csv(gzip.open('data/page_rank.csv.gz', 'rb'))
-        # self.page_view = pickle.load(open('data/page_view.pkl', 'rb'))  # October Page view has missing documents
-        # self.page_view_12 = pickle.load(
-        #     open('data/pageviews-202112.pkl', 'rb'))  # Use December 2021 page views to include missing docs
-        # self.anchor_double_index = pickle.load(open('data/anchor_double_index.pkl', 'rb'))
-        # self.bucket_name = 'bodyindex'
-        # self.client = storage.Client()
-        # self.bucket = self.client.get_bucket(self.bucket_name)
+        title_index_path = r'C:\Users\elorberb\PycharmProjects\BGU projects\Search-Engine\src\indexes\index_title.pkl'
+        text_index_path = r'C:\Users\elorberb\PycharmProjects\BGU projects\Search-Engine\src\indexes\index_text.pkl'
+        anchor_index_path = r'C:\Users\elorberb\PycharmProjects\BGU projects\Search-Engine\src\indexes\index_anchor.pkl'
 
-    def preprocess(self, query):
+        self.title_index = pickle.load(open(title_index_path, "rb"))
+        self.text_index = pickle.load(open(text_index_path, "rb"))
+        self.anchor_index = pickle.load(open(anchor_index_path, "rb"))
+
+        self.N = len(self.text_index.DL)
+
+    def tokenize(self, text):
         """
-        Preprocesses the given query by performing the following steps:
-        1. Extract words from the query using a regular expression
-        2. Removes stopwords from the list of extracted words
-        3. Returns the resulting list of words
+        This function aims in tokenize a text into a list of tokens. Moreover, it filter stopwords.
 
         Parameters:
-        query (str): The query to be preprocessed
+        -----------
+        text: string , represting the text to tokenize.
 
         Returns:
-        list: A list of words extracted from the query
+        -----------
+        list of tokens (e.g., list of tokens).
         """
-
-        # Set of English stopwords
-        english_stopwords = frozenset(stopwords.words('english'))
-
-        # Additional stopwords specific to the corpus
-        corpus_stopwords = ["category", "references", "also", "external", "links",
-                            "may", "first", "see", "history", "people", "one", "two",
-                            "part", "thumb", "including", "second", "following",
-                            "many", "however", "would", "became", "make", "good", "best", "worst"]
-
-        # Union of all stopwords
-        all_stopwords = english_stopwords.union(corpus_stopwords)
-
-        # Regular expression for matching words
         RE_WORD = re.compile(r"""[\#\@\w](['\-]?\w){2,24}""", re.UNICODE)
+        stopwords_frozen = frozenset(stopwords.words('english'))
 
-        # Extract words from query and remove stopwords
-        tokens = [token.group() for token in RE_WORD.finditer(query.lower()) if token.group() not in all_stopwords]
+        list_of_tokens = [token.group() for token in RE_WORD.finditer(text.lower()) if
+                          token.group() not in stopwords_frozen]
+        return list_of_tokens
 
-        return tokens
-
-    def tf_idf(self, posting_list, DL, N):
+    def generate_query_tfidf_vector(self, query, index):
         """
-        Calculate the term frequency-inverse document frequency (TF-IDF) for a word.
+        Generate a vector representing the query. Each entry within this vector represents a tfidf score.
+        The terms representing the query will be the unique terms in the index.
+
+        We will use tfidf on the query as well.
+        For calculation of IDF, use log with base 10.
+        tf will be normalized based on the length of the query.
 
         Parameters:
-        posting_list -- a list of (doc_id, frequency) tuples for a word
-        DL -- a dictionary of {doc_id: doc_length} for all documents
-        N -- the total number of documents
+        -----------
+        query: (str). They query to be processed.
+        index: inverted index loaded from the corresponding files.
 
         Returns:
-        a dictionary of {doc_id: tfidf_score} for the given word
+        -----------
+        vectorized query with tfidf scores
         """
-        tfidf = defaultdict(int)
-        idf = 1 + math.log(N / len(posting_list), 10)
-        for doc_id, freq in posting_list:
-            tf = freq / (1 + math.log(DL[doc_id], 10))
-            tfidf[doc_id] += tf * idf
-        return tfidf
+        query = self.tokenize(query)
+        epsilon = .0000001
+        total_vocab_size = len(index.term_total)
+        Q = np.zeros(total_vocab_size)
+        term_vector = list(index.term_total.keys())
+        counter = Counter(query)
+        for token in np.unique(query):
+            if token in index.term_total.keys():  # avoid terms that do not appear in the index.
+                tf = counter[token] / len(query)  # term frequency divded by the length of the query
+                df = index.df[token]
+                idf = math.log(self.N / (df + epsilon), 10)  # smoothing
 
+                try:
+                    ind = term_vector.index(token)
+                    Q[ind] = tf * idf
+                except:
+                    pass
+        return Q
 
-    def cosine_similarity(self, documents, query):
+    def get_posting_iter(self, index):
         """
-        Calculate the cosine similarity between a list of documents and a query document.
+        This function returning the iterator working with posting list.
 
-        Parameters
+        Parameters:
         ----------
-        documents: pandas.DataFrame
-            A dataframe containing the list of documents tfidf scores.
-        query: pandas.DataFrame
-            A dataframe containing the query tfidf scores.
-
-        Returns
-        -------
-        pandas.DataFrame
-            A dataframe containing the cosine similarity scores
-            for each document in `documents`, sorted in descending order.
+        index: inverted index
         """
-        # Calculate numerator - dot product between documents and query
-        numerator = documents.dot(query.T.to_numpy()).T
+        words, pls = zip(*index.posting_lists_iter())
+        return words, pls
 
-        # Calculate denominator part of formula
-        query_norm = np.sqrt(query.dot(query.T.to_numpy()).iat[0, 0])
-        docs_norm = np.sqrt(documents.T.dot(documents.to_numpy()).iat[0, 0])
-        denominator = float(query_norm * docs_norm)
-
-        # Calculate cosine similarity scores
-        scores = numerator.div(denominator)
-
-        # Sort results in descending order
-        sorted_scores = scores.sort_values(by=scores.index[0], ascending=False, axis=1)
-
-        # Remove documents with too small score
-        epsilon = 0.01
-        filtered_scores = sorted_scores.loc[:, sorted_scores.iloc[0] > epsilon]
-
-        return filtered_scores
-
-    def bm25(self, query):
-        pass
-
-    def main_search(self, query):
-        pass
-
-    def get_body(self, query):
-
+    def get_candidate_documents_and_scores(self, query, index, words, pls):
         """
-        Params:
-        ------
-        query - list of tokens. i.e: ["hello", "world"]
-        ======
-        Iterates over each words and downloads its relevent postings list.
-        Calculates the tfidf of each word in each document
-        and calculates the tfidf of each word in query
-        Also, we remove words that their tfidf in the query_tfidf is smaller than some epsilon from the highest tfidf.
+        Generate a dictionary representing a pool of candidate documents for a given query. This function will go through every token in query_to_search
+        and fetch the corresponding information (e.g., term frequency, document frequency, etc.') needed to calculate TF-IDF from the posting list.
+        Then it will populate the dictionary 'candidates.'
+        For calculation of IDF, use log with base 10.
+        tf will be normalized based on the length of the document.
 
-        Output:
-        Dataframe: docs as columns and row as score
-        List of remaining words
+        Parameters:
+        -----------
+        query: (str). They query to be processed.
+        index:        inverted index loaded from the corresponding files.
+
+        words,pls: iterator for working with posting.
+
+        Returns:
+        -----------
+        dictionary of candidates. In the following format:
+                                                                   key: pair (doc_id,term)
+                                                                   value: tfidf score.
+        """
+        query = self.tokenize(query)
+        candidates = {}
+        for term in np.unique(query):
+            if term in words:
+                list_of_doc = pls[words.index(term)]
+                normlized_tfidf = [(doc_id, (freq / index.DL[doc_id]) * math.log(len(index.DL) / index.df[term], 10)) for
+                                   doc_id, freq in list_of_doc]
+
+                for doc_id, tfidf in normlized_tfidf:
+                    candidates[(doc_id, term)] = candidates.get((doc_id, term), 0) + tfidf
+
+        return candidates
+
+    def generate_document_tfidf_matrix(self, query, index, words, pls):
+        """
+        Generate a DataFrame `D` of tfidf scores for a given query.
+        Rows will be the documents candidates for a given query
+        Columns will be the unique terms in the index.
+        The value for a given document and term will be its tfidf score.
+
+        Parameters:
+        -----------
+        query: (str). They query to be processed.
+
+        index:           inverted index loaded from the corresponding files.
+
+
+        words,pls: iterator for working with posting.
+
+        Returns:
+        -----------
+        DataFrame of tfidf scores.
+        """
+        total_vocab_size = len(index.term_total)
+        candidates_scores = self.get_candidate_documents_and_scores(query, index, words, pls)
+        unique_candidates = np.unique([doc_id for doc_id, freq in candidates_scores.keys()])
+        D = np.zeros((len(unique_candidates), total_vocab_size))
+        D = pd.DataFrame(D)
+
+        D.index = unique_candidates
+        D.columns = index.term_total.keys()
+
+        for key in candidates_scores:
+            tfidf = candidates_scores[key]
+            doc_id, term = key
+            D.loc[doc_id][term] = tfidf
+
+        return D
+
+    def cosine_similarity(self, D, Q):
+        """
+        Calculate the cosine similarity for each candidate document in D and a given query (e.g., Q).
+        Generate a dictionary of cosine similarity scores
+        key: doc_id
+        value: cosine similarity score
+
+        Parameters:
+        -----------
+        D: DataFrame of tfidf scores.
+
+        Q: vectorized query with tfidf scores
+
+        Returns:
+        -----------
+        dictionary of cosine similarity score as follows:
+                                                                    key: document id (e.g., doc_id)
+                                                                    value: cosine similarty score.
+        """
+        # YOUR CODE HERE
+        scores = {}
+        for i, doc in D.iterrows():
+            scores[i] = np.dot(doc, Q) / (np.sqrt(np.dot(doc, doc)) * np.sqrt(np.dot(Q, Q)))
+        return scores
+
+    def get_top_n(self, sim_dict, N=3):
+        """
+        Sort and return the highest N documents according to the cosine similarity score.
+        Generate a dictionary of cosine similarity scores
+
+        Parameters:
+        -----------
+        sim_dict: a dictionary of similarity score as follows:
+                                                                    key: document id (e.g., doc_id)
+                                                                    value: similarity score. We keep up to 5 digits after the decimal point. (e.g., round(score,5))
+
+        N: Integer (how many documents to retrieve). By default N = 3
+
+        Returns:
+        -----------
+        a ranked list of pairs (doc_id, score) in the length of N.
         """
 
-        query_doc_tfidf = {}
-        query_idf = {}
-        query_tf = defaultdict(int)
-        query_tfidf = {}
+        return sorted([(doc_id, round(score, 5)) for doc_id, score in sim_dict.items()], key=lambda x: x[1], reverse=True)[:N]
 
-        for w, posting_list in self.body_index.posting_lists_iter(BUCKET_POSTINGS_BODY,
-                                                                  query):  # Iterate over each posting list
-            query_doc_tfidf[w] = self.tf_idf(posting_list, self.body_index.DL)  # save tfidf for each doc
-            query_idf[w] = 1 + math.log(self.N / len(posting_list), 10)  # save udf of each word in query
-
-        if len(query_idf) == 0:
-            return pd.DataFrame({}), []
-
-        for w in query_idf:
-            query_tf[w] += 1  # Calculate term frequency of words in query
-
-        for w, freq in query_tf.items():
-            score = freq * query_idf[w]
-            query_tfidf[w] = [score]  # save tfidf of each word in query
-
-        max_tfidf = max(set().union(*query_tfidf.values()))  # get the highest tfidf in query
-        epsilon = 0.9  # filters words with too small tfidf
-
-        df_query_tfidf = pd.DataFrame(query_tfidf)
-        words = df_query_tfidf.columns
-
-        df_query_tfidf = df_query_tfidf.loc[:,
-                         df_query_tfidf.iloc[0] > (max_tfidf - epsilon)]  # filter irrelevent words
-        words = list(filter(lambda i: i not in df_query_tfidf.columns, words))  # Extract the words that were removed
-
-        df = pd.DataFrame(query_doc_tfidf)
-        df.drop(words, axis=1, inplace=True)  # filter irrelevent words
-
-        # df = pd.concat([df_query_tfidf, df]).T
-        df = df.fillna(value=0)
-        df_query_tfidf = df_query_tfidf.fillna(value=0)
-
-        cosine_sim_body = self.cosine_similarity(df, df_query_tfidf)  # calculate cosine similarity
-        return cosine_sim_body, df.columns
-
-    def get_title(self, query):
-
+    def get_topN_score_for_queries(self, query, index, N=3):
         """
-        Params:
-        ------
-        query: list of tokens. i.e.: ["hello", "world"]
-        ======
-        Sorting all relevent docs of query with the title index
-        Output:
-        ------
-        List of doc_ids sorted by anchor relevence
+        Generate a dictionary that gathers for every query its topN score.
+
+        Parameters:
+        -----------
+        queries_to_search: a dictionary of queries as follows:
+                                                            key: query_id
+                                                            value: list of tokens.
+        index:           inverted index loaded from the corresponding files.
+        N: Integer. How many documents to retrieve. This argument is passed to the topN function. By default N = 3, for the topN function.
+
+        Returns:
+        -----------
+        return: a dictionary of queries and topN pairs as follows:
+                                                            key: query_id
+                                                            value: list of pairs in the following format:(doc_id, score).
         """
+        # YOUR CODE HERE
 
-        res = self.get_kind(query, self.title_index, BUCKET_POSTINGS_TITLE)
-        res = sorted(res.items(), key=lambda x: x[1], reverse=True)
-        return [x for x, y in res]
-
-    def get_anchor(self, query):
-        pass
-
-    def get_view(self, query):
-        pass
-
-    def get_page_rank(self):
-        pass
+        words, pls = self.get_posting_iter(index)  # get words and posting lists
+        doc_matrix = self.generate_document_tfidf_matrix(query, index, words, pls)  # tfidf of doc
+        query_vector = self.generate_query_tfidf_vector(query, index)  # tfidf of query
+        return self.get_top_n(self.cosine_similarity(doc_matrix, query_vector), N)  # return score for top N
 
 
-if __name__ == '__main__':
-    back = backend('bodyindex')
-    inver = back.get_inverted_index('data/bodyindex.pkl', 'bodyindex.pkl')
-    print(inver.get_posting_list('the'))
+
+
+
+
+
+
+
+
+
+
+
+
