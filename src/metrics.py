@@ -1,3 +1,39 @@
+def recall_at_k(true_list, predicted_list, k=40):
+    """
+      Calculate the recall at k for a given list of true items and a list of predicted items.
+
+      Parameters:
+      - true_list (list): a list of true items.
+      - predicted_list (list): a list of predicted items.
+      - k (int, optional): the number of items to consider in the predicted list (default is 40).
+
+      Returns:
+      - float: the recall at k, i.e., the fraction of true items that appear in the top k predicted items.
+
+      Note:
+      The recall at k is a measure of the effectiveness of a recommendation system. It represents the
+      proportion of the items that the system recommended (i.e., the top k predicted items) that the user
+      actually consumed (i.e., the true items).
+      """
+    # Sort the predicted list in decreasing order of confidence scores
+    sorted_pred = sorted(predicted_list)
+    pred = sorted_pred[:k]
+
+    # Convert the true list to a set for fast membership checking
+    true_set = set(true_list)
+
+    # Use set intersection to calculate the intersection of the two lists
+    inter = true_set & set(pred)
+
+    return round(len(inter) / len(true_list), 3)
+
+
+
+
+
+
+
+
 def recall_at_k(y_true, y_pred, k=40):
     """
       Calculate the recall at k for a given list of true items and a list of predicted items.
