@@ -19,6 +19,10 @@ from collections import defaultdict
 
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"]=r"C:\Users\ofi1\Pycharm_Projects\BGU_Projects\Search-Engine\src\data-retrieval-project-d9f8e61f8a29 (1).json"
 
+BUCKET_POSTINGS_BODY = 'postings_body/postings_gcp'
+
+
+
 class backend:
 
     def __init__(self):
@@ -131,6 +135,81 @@ class backend:
 
         return filtered_scores
 
+    def bm25(self,query):
+        pass
+
+
+    def main_search(self,query):
+        pass
+
+    def get_body(self, query):
+
+        """
+        Params:
+        ------
+        query - list of tokens. i.e: ["hello", "world"]
+        ======
+        Iterates over each words and downloads its relevent postings list.
+        Calculates the tfidf of each word in each document
+        and calculates the tfidf of each word in query
+        Also, we remove words that their tfidf in the query_tfidf is smaller than some epsilon from the highest tfidf.
+
+        Output:
+        Dataframe: docs as columns and row as score
+        List of remaining words
+        """
+
+        query_doc_tfidf = {}
+        query_idf = {}
+        query_tf = defaultdict(int)
+        query_tfidf = {}
+
+        for w, posting_list in self.body_index.posting_lists_iter(BUCKET_POSTINGS_BODY,
+                                                                  query):  # Iterate over each posting list
+            query_doc_tfidf[w] = self.tf_idf(posting_list, self.body_index.DL)  # save tfidf for each doc
+            query_idf[w] = 1 + math.log(self.N / len(posting_list), 10)  # save udf of each word in query
+
+        if len(query_idf) == 0:
+            return pd.DataFrame({}), []
+
+        for w in query_idf:
+            query_tf[w] += 1  # Calculate term frequency of words in query
+
+        for w, freq in query_tf.items():
+            score = freq * query_idf[w]
+            query_tfidf[w] = [score]  # save tfidf of each word in query
+
+        max_tfidf = max(set().union(*query_tfidf.values()))  # get the highest tfidf in query
+        epsilon = 0.9  # filters words with too small tfidf
+
+        df_query_tfidf = pd.DataFrame(query_tfidf)
+        words = df_query_tfidf.columns
+
+        df_query_tfidf = df_query_tfidf.loc[:,
+                         df_query_tfidf.iloc[0] > (max_tfidf - epsilon)]  # filter irrelevent words
+        words = list(filter(lambda i: i not in df_query_tfidf.columns, words))  # Extract the words that were removed
+
+        df = pd.DataFrame(query_doc_tfidf)
+        df.drop(words, axis=1, inplace=True)  # filter irrelevent words
+
+        # df = pd.concat([df_query_tfidf, df]).T
+        df = df.fillna(value=0)
+        df_query_tfidf = df_query_tfidf.fillna(value=0)
+
+        cosine_sim_body = self.cosine_similarity(df, df_query_tfidf)  # calculate cosine similarity
+        return cosine_sim_body, df.columns
+
+    def get_title(self,query):
+        pass
+
+    def get_anchor(self,query):
+        pass
+
+    def get_view(self,query):
+        pass
+
+    def get_page_rank(self):
+        pass
 
 
 
