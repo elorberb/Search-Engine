@@ -89,8 +89,7 @@ class InvertedIndex:
     # the number of bytes from the beginning of the file where the posting list
     # starts. 
     self.posting_locs = defaultdict(list)
-    self.DL = {}
-    
+
     for doc_id, tokens in docs.items():
       self.add_doc(doc_id, tokens)
 
@@ -99,7 +98,6 @@ class InvertedIndex:
             the tf of tokens, then update the index (in memory, no storage 
             side-effects).
         """
-        self.DL[doc_id] = self.DL.get(doc_id,0) + (len(tokens))
         w2cnt = Counter(tokens)
         self.term_total.update(w2cnt)
         max_value = max(w2cnt.items(), key=itemgetter(1))[1]    
