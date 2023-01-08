@@ -10,6 +10,7 @@ from src.inverted_index_colab import *
 import pandas as pd
 import numpy as np
 from collections import defaultdict
+from collections import Counter
 
 
 class Backend:
@@ -37,7 +38,6 @@ class Backend:
         Parameters:
         -----------
         text: string , represting the text to tokenize.
-
         Returns:
         -----------
         list of tokens (e.g., list of tokens).
@@ -60,14 +60,13 @@ class Backend:
 
         Parameters:
         -----------
-        query: (str). They query to be processed.
+        query: list of tokens in the query
         index: inverted index loaded from the corresponding files.
 
         Returns:
         -----------
         vectorized query with tfidf scores
         """
-        query = self.tokenize(query)
         epsilon = .0000001
         total_vocab_size = len(index.term_total)
         Q = np.zeros(total_vocab_size)
@@ -107,18 +106,16 @@ class Backend:
 
         Parameters:
         -----------
-        query: (str). They query to be processed.
-        index:        inverted index loaded from the corresponding files.
-
+        query: list of tokens in the query
+        index: inverted index loaded from the corresponding files.
         words,pls: iterator for working with posting.
 
         Returns:
         -----------
         dictionary of candidates. In the following format:
-                                                                   key: pair (doc_id,term)
-                                                                   value: tfidf score.
+        key: pair (doc_id,term)
+        value: tfidf score.
         """
-        query = self.tokenize(query)
         candidates = {}
         for term in np.unique(query):
             if term in words:
@@ -140,11 +137,9 @@ class Backend:
 
         Parameters:
         -----------
-        query: (str). They query to be processed.
+        query: list of tokens in the query
 
-        index:           inverted index loaded from the corresponding files.
-
-
+        index: inverted index loaded from the corresponding files.
         words,pls: iterator for working with posting.
 
         Returns:
@@ -169,7 +164,7 @@ class Backend:
 
     def cosine_similarity(self, D, Q):
         """
-        Calculate the cosine similarity for each candidate document in D and a given query (e.g., Q).
+        Calculate the cosine similarity for each candidate document.
         Generate a dictionary of cosine similarity scores
         key: doc_id
         value: cosine similarity score
@@ -177,51 +172,26 @@ class Backend:
         Parameters:
         -----------
         D: DataFrame of tfidf scores.
-
         Q: vectorized query with tfidf scores
 
         Returns:
         -----------
         dictionary of cosine similarity score as follows:
-                                                                    key: document id (e.g., doc_id)
-                                                                    value: cosine similarty score.
+        key: document id (e.g., doc_id)
+        value: cosine similarty score.
         """
-        # YOUR CODE HERE
         scores = {}
         for i, doc in D.iterrows():
             scores[i] = np.dot(doc, Q) / (np.sqrt(np.dot(doc, doc)) * np.sqrt(np.dot(Q, Q)))
         return scores
 
-    def get_top_n(self, sim_dict, N=3):
+    def search_body(self, query, N=3):
         """
-        Sort and return the highest N documents according to the cosine similarity score.
-        Generate a dictionary of cosine similarity scores
+        Generate a dictionary that gathers for every query its topN tfidf score.
 
         Parameters:
         -----------
-        sim_dict: a dictionary of similarity score as follows:
-                                                                    key: document id (e.g., doc_id)
-                                                                    value: similarity score. We keep up to 5 digits after the decimal point. (e.g., round(score,5))
-
-        N: Integer (how many documents to retrieve). By default N = 3
-
-        Returns:
-        -----------
-        a ranked list of pairs (doc_id, score) in the length of N.
-        """
-
-        return sorted([(doc_id, round(score, 5)) for doc_id, score in sim_dict.items()], key=lambda x: x[1], reverse=True)[:N]
-
-    def get_topN_score_for_queries(self, query, index, N=3):
-        """
-        Generate a dictionary that gathers for every query its topN score.
-
-        Parameters:
-        -----------
-        queries_to_search: a dictionary of queries as follows:
-                                                            key: query_id
-                                                            value: list of tokens.
-        index:           inverted index loaded from the corresponding files.
+        - query: list of tokens in the query
         N: Integer. How many documents to retrieve. This argument is passed to the topN function. By default N = 3, for the topN function.
 
         Returns:
@@ -232,21 +202,58 @@ class Backend:
         """
         # YOUR CODE HERE
 
-        words, pls = self.get_posting_iter(index)  # get words and posting lists
-        doc_matrix = self.generate_document_tfidf_matrix(query, index, words, pls)  # tfidf of doc
-        query_vector = self.generate_query_tfidf_vector(query, index)  # tfidf of query
-        return self.get_top_n(self.cosine_similarity(doc_matrix, query_vector), N)  # return score for top N
+        words, pls = self.get_posting_iter(self.text_index)  # get words and posting lists
+        doc_matrix = self.generate_document_tfidf_matrix(query, self.text_index, words, pls)  # tfidf of doc
+        query_vector = self.generate_query_tfidf_vector(query, self.text_index)  # tfidf of query
+        sim_dict = self.cosine_similarity(doc_matrix, query_vector)  # cosine similarity
+        top_n = sorted([(doc_id, round(score, 5)) for doc_id, score in sim_dict.items()], key=lambda x: x[1],reverse=True)[:N]
+        return top_n  # return score for top N
 
+    def count_words_in_index(self, query, kind='title'):
+        """
+        Calculate anchor terms for a given query.
 
+        Parameters:
+        - query: list of tokens in the query
 
+        Returns:
+        - sorted_lst_tuples: list of tuples (token, count) sorted by count in descending order
+        """
+        # Use a Counter to store the term_total counts
+        if kind == 'anchor':
+            term_total = Counter(self.anchor_index.term_total)
+        else:
+            term_total = Counter(self.title_index.term_total)
+        # Create a list of tuples (token, count) for the tokens in the query
+        lst_tuples = [(token, term_total[token]) for token in query if token in term_total]
+        # Sort the list of tuples by count in descending order
+        sorted_lst_tuples = sorted(lst_tuples, key=lambda x: x[1], reverse=True)
 
+        return sorted_lst_tuples
 
+    def search_title(self, query, N=3):
+        """
+        Search the title index for the given query and return the top N results.
 
+        Parameters:
+        - query: list of tokens in the query
+        - N: number of results to return (default is 3)
 
+        Returns:
+        - top_results: list of tuples (token, count) for the top N results
+        """
+        return self.count_words_in_index(query, kind='title')[:N]
 
+    def search_anchor(self, query, N=3):
+        """
+        Search the anchor index for the given query and return the top N results.
 
+        Parameters:
+        - query: list of tokens in the query
+        - N: number of results to return (default is 3)
 
-
-
-
+        Returns:
+        - top_results: list of tuples (token, count) for the top N results
+        """
+        return self.count_words_in_index(query, kind='anchor')[:N]
 
