@@ -205,8 +205,6 @@ class Backend:
                                                             key: query_id
                                                             value: list of pairs in the following format:(doc_id, score).
         """
-        # YOUR CODE HERE
-
         words, pls = self.get_posting_iter(self.text_index)  # get words and posting lists
         doc_matrix = self.generate_document_tfidf_matrix(query, self.text_index, words, pls)  # tfidf of doc
         query_vector = self.generate_query_tfidf_vector(query, self.text_index)  # tfidf of query
