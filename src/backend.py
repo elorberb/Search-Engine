@@ -28,6 +28,7 @@ class Backend:
         self.anchor_index = pickle.load(open(anchor_index_path, "rb"))
 
         self.N = len(self.text_index.DL)
+        self.DL = self.text_index.DL
 
     def tokenize(self, text):
         """
@@ -122,7 +123,7 @@ class Backend:
         for term in np.unique(query):
             if term in words:
                 list_of_doc = pls[words.index(term)]
-                normlized_tfidf = [(doc_id, (freq / index.DL[doc_id]) * math.log(len(index.DL) / index.df[term], 10)) for
+                normlized_tfidf = [(doc_id, (freq / self.DL[doc_id]) * math.log(len(self.DL) / index.df[term], 10)) for
                                    doc_id, freq in list_of_doc]
 
                 for doc_id, tfidf in normlized_tfidf:

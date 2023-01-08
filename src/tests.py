@@ -50,8 +50,13 @@ class MyTestCase(unittest.TestCase):
     def test_get_topN_score_for_queries(self):
         back = Backend()
         query = "similarity laws must obeyed when constructing aeroelastic models of heated high speed aircraft"
-        score = back.get_topN_score_for_queries(query, back.text_index, 10)
-        print(score)
+        # score_text = back.get_topN_score_for_queries(query, back.text_index, 10)
+        # score_title = back.get_topN_score_for_queries(query, back.title_index, 10)
+        score_anchor = back.get_topN_score_for_queries(query, back.anchor_index, 10)
+
+        # print(f"Text index scores:\n{score_text}")
+        # print(f"Text index scores:\n{score_title}")
+        print(f"Text index scores:\n{score_anchor}")
         self.assertEqual(True, True)
 
 
