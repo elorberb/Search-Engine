@@ -47,16 +47,30 @@ class MyTestCase(unittest.TestCase):
         print(cosine_sim)
         self.assertEqual(True, True)
 
-    def test_get_topN_score_for_queries(self):
+    def test_search_body(self):
         back = Backend()
         query = "similarity laws must obeyed when constructing aeroelastic models of heated high speed aircraft"
-        # score_text = back.get_topN_score_for_queries(query, back.text_index, 10)
-        # score_title = back.get_topN_score_for_queries(query, back.title_index, 10)
-        score_anchor = back.get_topN_score_for_queries(query, back.anchor_index, 10)
+        query = back.tokenize(query)
+        score_text = back.search_body(query, 10)
 
-        # print(f"Text index scores:\n{score_text}")
-        # print(f"Text index scores:\n{score_title}")
-        print(f"Text index scores:\n{score_anchor}")
+        print(f"Text index scores:\n{score_text}")
+        self.assertEqual(True, True)
+
+    def test_get_anchor(self):
+        back = Backend()
+        query = "hello world"
+        query = back.tokenize(query)
+        sorted_lst_tuples = back.calc_anchor(query)
+
+        print(sorted_lst_tuples)
+        self.assertEqual(True, True)
+
+
+    def test_map_docId_to_title(self):
+        back = Backend()
+        query = "hello world"
+        query = back.tokenize(query)
+        print(back.title_index.term_total)
         self.assertEqual(True, True)
 
 
