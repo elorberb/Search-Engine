@@ -3,6 +3,7 @@ import gzip
 import math
 import json
 import nltk
+nltk.download('stopwords')
 from nltk.corpus import stopwords
 import re
 import os
@@ -19,13 +20,17 @@ class Backend:
            Put super indexes and relevent files in main memory to save time during queries
            """
 
-        title_index_path = r'C:\Users\elorberb\PycharmProjects\BGU projects\Search-Engine\src\indexes\index_title.pkl'
-        text_index_path = r'C:\Users\elorberb\PycharmProjects\BGU projects\Search-Engine\src\indexes\index_text.pkl'
-        anchor_index_path = r'C:\Users\elorberb\PycharmProjects\BGU projects\Search-Engine\src\indexes\index_anchor.pkl'
+        title_index_path = r'C:\Users\ofi1\Pycharm_Projects\BGU_Projects\Search-Engine\src\indexes\index_title.pkl'
+        text_index_path = r'C:\Users\ofi1\Pycharm_Projects\BGU_Projects\Search-Engine\src\indexes\index_text.pkl'
+        anchor_index_path = r'C:\Users\ofi1\Pycharm_Projects\BGU_Projects\Search-Engine\src\indexes\index_anchor.pkl'
+        page_rank_path = r'C:\Users\ofi1\Pycharm_Projects\BGU_Projects\Search-Engine\src\indexes\page_rank.pickle'
+        page_view_path = r'C:\Users\ofi1\Pycharm_Projects\BGU_Projects\Search-Engine\src\indexes\pageviews-202108-user.pkl'
 
         self.title_index = pickle.load(open(title_index_path, "rb"))
         self.text_index = pickle.load(open(text_index_path, "rb"))
         self.anchor_index = pickle.load(open(anchor_index_path, "rb"))
+        self.page_rank = pd.read_pickle(page_rank_path)
+        self.page_view = pickle.load(open(page_view_path))
 
         self.N = len(self.text_index.DL)
         self.DL = self.text_index.DL
@@ -236,6 +241,20 @@ class Backend:
         doc_matrix = self.generate_document_tfidf_matrix(query, index, words, pls)  # tfidf of doc
         query_vector = self.generate_query_tfidf_vector(query, index)  # tfidf of query
         return self.get_top_n(self.cosine_similarity(doc_matrix, query_vector), N)  # return score for top N
+
+
+    def pageviews(self, wiki_ids):
+        res = []
+        for article_id in wiki_ids:
+            res.append(self.page_view[article_id])
+        return res
+
+
+    def pagerank(self, wiki_ids):
+        res = []
+        for article_id in wiki_ids:
+            res.append(self.page_rank[article_id])
+        return res
 
 
 

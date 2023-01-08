@@ -1,7 +1,8 @@
 from flask import Flask, request, jsonify
-from backend import *
+from backend import backend
 
 
+backend_search = backend()
 class MyFlaskApp(Flask):
     def run(self, host=None, port=None, debug=None, **options):
         super(MyFlaskApp, self).run(host=host, port=port, debug=debug, **options)
@@ -61,8 +62,10 @@ def search_body():
     if len(query) == 0:
         return jsonify(res)
     # BEGIN SOLUTION
-    res = backend.preprocess(query)
-    res = backend.get_body(res)
+    # res = backend.preprocess(query)
+    # res = backend.get_body()
+    res = backend_search.get_body(query)
+    print(res)
     # END SOLUTION
     return jsonify(res)
 
@@ -115,7 +118,6 @@ def search_anchor():
     '''
     res = []
     query = request.args.get('query', '')
-    print(query)
     if len(query) == 0:
         return jsonify(res)
     # BEGIN SOLUTION
@@ -145,7 +147,7 @@ def get_pagerank():
     if len(wiki_ids) == 0:
         return jsonify(res)
     # BEGIN SOLUTION
-
+    res = backend_search.pagerank(wiki_ids)
     # END SOLUTION
     return jsonify(res)
 
@@ -173,7 +175,7 @@ def get_pageview():
     if len(wiki_ids) == 0:
         return jsonify(res)
     # BEGIN SOLUTION
-
+    res = backend_search.pageviews(wiki_ids)
     # END SOLUTION
     return jsonify(res)
 
