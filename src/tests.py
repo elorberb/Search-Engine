@@ -74,6 +74,28 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(True, True)
 
 
+    def test_page_rank(self):
+        back = Backend()
+        items = back.page_rank.items()
+        items = list(items)
+
+        # Print the first 5 key-value pairs
+        for i in range(5):
+            print(items[i])
+        self.assertEqual(True, True)
+
+
+    def test_page_view(self):
+        back = Backend()
+        items = back.page_view.items()
+        items = list(items)
+
+        # Print the first 5 key-value pairs
+        for i in range(5):
+            print(items[i])
+        self.assertEqual(True, True)
+
+
 
 
 

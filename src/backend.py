@@ -24,9 +24,14 @@ class Backend:
         text_index_path = r'C:\Users\elorberb\PycharmProjects\BGU projects\Search-Engine\src\indexes\index_text.pkl'
         anchor_index_path = r'C:\Users\elorberb\PycharmProjects\BGU projects\Search-Engine\src\indexes\index_anchor.pkl'
 
+        page_rank_path = r'C:\Users\elorberb\PycharmProjects\BGU projects\Search-Engine\src\pages\page_rank.pickle'
+        page_view_path = r'C:\Users\elorberb\PycharmProjects\BGU projects\Search-Engine\src\pages\pageviews.pkl'
+
         self.title_index = pickle.load(open(title_index_path, "rb"))
         self.text_index = pickle.load(open(text_index_path, "rb"))
         self.anchor_index = pickle.load(open(anchor_index_path, "rb"))
+        self.page_rank = pd.read_pickle(page_rank_path)
+        self.page_view = pickle.load(open(page_view_path, "rb"))
 
         self.N = len(self.text_index.DL)
         self.DL = self.text_index.DL
@@ -256,4 +261,30 @@ class Backend:
         - top_results: list of tuples (token, count) for the top N results
         """
         return self.count_words_in_index(query, kind='anchor')[:N]
+
+    def get_page_view(self, doc_ids):
+        """
+        Return a list of page views for the specified document IDs.
+
+        Parameters:
+        - doc_ids: list of document IDs
+
+        Returns:
+        - values: list of page views for the specified document IDs
+        """
+        values = [self.page_view[doc_id] for doc_id in doc_ids]
+        return values
+
+    def get_page_rank(self, doc_ids):
+        """
+        Return a list of page ranks for the specified document IDs.
+
+        Parameters:
+        - doc_ids: list of document IDs
+
+        Returns:
+        - values: list of page ranks for the specified document IDs
+        """
+        values = [self.page_rank[doc_id] for doc_id in doc_ids]
+        return values
 
