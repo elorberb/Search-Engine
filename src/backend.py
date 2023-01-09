@@ -20,18 +20,17 @@ class Backend:
            Put super indexes and relevent files in main memory to save time during queries
            """
 
-        title_index_path = r'C:\Users\elorberb\PycharmProjects\BGU projects\Search-Engine\src\indexes\index_title.pkl'
-        text_index_path = r'C:\Users\elorberb\PycharmProjects\BGU projects\Search-Engine\src\indexes\index_text.pkl'
-        anchor_index_path = r'C:\Users\elorberb\PycharmProjects\BGU projects\Search-Engine\src\indexes\index_anchor.pkl'
+        indices_path = r'C:\Users\elorberb\PycharmProjects\BGU projects\Search-Engine\src\indexes'
 
         page_rank_path = r'C:\Users\elorberb\PycharmProjects\BGU projects\Search-Engine\src\pages\page_rank.pickle'
-        page_view_path = r'C:\Users\elorberb\PycharmProjects\BGU projects\Search-Engine\src\pages\pageviews.pkl'
+        pages_path = r'C:\Users\elorberb\PycharmProjects\BGU projects\Search-Engine\src\pages'
 
-        self.title_index = pickle.load(open(title_index_path, "rb"))
-        self.text_index = pickle.load(open(text_index_path, "rb"))
-        self.anchor_index = pickle.load(open(anchor_index_path, "rb"))
+        inverted = InvertedIndex()
+        self.title_index = inverted.read_index(indices_path, 'index_title')
+        self.text_index = inverted.read_index(indices_path, 'index_text')
+        self.anchor_index = inverted.read_index(indices_path, 'index_anchor')
         self.page_rank = pd.read_pickle(page_rank_path)
-        self.page_view = pickle.load(open(page_view_path, "rb"))
+        self.page_view = inverted.read_index(pages_path, 'pageviews')
 
         self.N = len(self.text_index.DL)
         self.DL = self.text_index.DL
@@ -208,7 +207,8 @@ class Backend:
         doc_matrix = self.generate_document_tfidf_matrix(query, self.text_index, words, pls)  # tfidf of doc
         query_vector = self.generate_query_tfidf_vector(query, self.text_index)  # tfidf of query
         sim_dict = self.cosine_similarity(doc_matrix, query_vector)  # cosine similarity
-        top_n = sorted([(doc_id, round(score, 5)) for doc_id, score in sim_dict.items()], key=lambda x: x[1],reverse=True)[:N]
+        top_n = sorted([(doc_id, round(score, 5)) for doc_id, score in sim_dict.items()], key=lambda x: x[1],
+                       reverse=True)[:N]
         return top_n  # return score for top N
 
     def count_words_in_index(self, query, kind='title'):
@@ -284,4 +284,3 @@ class Backend:
         """
         values = [self.page_rank[doc_id] for doc_id in doc_ids]
         return values
-

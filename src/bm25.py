@@ -1,27 +1,28 @@
 import math
 from itertools import chain
 import time
+from backend import *
 
 
-# When preprocessing the data have a dictionary of document length for each document saved in a variable called `DL`.
-class BM25_from_index:
+class BM25:
     """
     Best Match 25.
     ----------
     k1 : float, default 1.5
-
     b : float, default 0.75
 
     index: inverted index
     """
 
-    def __init__(self, index, k1=1.5, b=0.75):
+    def __init__(self, index, DL, back,  k1=1.5, b=0.75):
         self.b = b
         self.k1 = k1
         self.index = index
+        self.DL = DL
         self.N = len(DL)
         self.AVGDL = sum(DL.values()) / self.N
         self.words, self.pls = zip(*self.index.posting_lists_iter())
+        self.back = back
 
     def calc_idf(self, list_of_tokens):
         """
@@ -34,8 +35,8 @@ class BM25_from_index:
         Returns:
         -----------
         idf: dictionary of idf scores. As follows:
-                                                    key: term
-                                                    value: bm25 idf score
+        key: term
+        value: bm25 idf score
         """
         idf = {}
         for term in list_of_tokens:
@@ -46,13 +47,13 @@ class BM25_from_index:
                 pass
         return idf
 
-    def search(self, queries, N=3):
+    def search(self, back, query, N=3):
         """
         This function calculate the bm25 score for given query and document.
         We need to check only documents which are 'candidates' for a given query.
         This function return a dictionary of scores as the following:
-                                                                    key: query_id
-                                                                    value: a ranked list of pairs (doc_id, score) in the length of N.
+        key: query_id
+        value: a ranked list of pairs (doc_id, score) in the length of N.
 
         Parameters:
         -----------
@@ -63,18 +64,13 @@ class BM25_from_index:
         -----------
         score: float, bm25 score.
         """
-        # YOUR CODE HERE
-
-        scores = {}
-        for query_id, query in queries.items():
-            self.idf = self.calc_idf(query)
-            # get relevant canidate docs
-            candidate_docs_and_tfidf = get_candidate_documents_and_scores(query, self.index, self.words, self.pls)
-            candidate_docs = [key[0] for key in candidate_docs_and_tfidf.keys()]
-            # for each doc add score for query and add to scores dict
-            score = [(doc_id, self._score(query, doc_id)) for doc_id in np.unique(candidate_docs)]
-            scores[query_id] = sorted(score, key=lambda x: x[1], reverse=True)[:N]
-        return scores
+        self.idf = self.calc_idf(query)
+        # get relevant canidate docs
+        candidate_docs_and_tfidf = back.get_candidate_documents_and_scores(query, self.index, self.words, self.pls)
+        candidate_docs = [key[0] for key in candidate_docs_and_tfidf.keys()]
+        # for each doc add score for query and add to scores dict
+        score = [(doc_id, self._score(query, doc_id)) for doc_id in np.unique(candidate_docs)]
+        return sorted(score, key=lambda x: x[1], reverse=True)[:N]
 
     def _score(self, query, doc_id):
         """
@@ -90,7 +86,7 @@ class BM25_from_index:
         score: float, bm25 score.
         """
         score = 0.0
-        doc_len = DL[str(doc_id)]
+        doc_len = self.DL[doc_id]
 
         for term in query:
             if term in self.index.term_total.keys():
