@@ -28,12 +28,6 @@ def recall_at_k(true_list, predicted_list, k=40):
     return round(len(inter) / len(true_list), 3)
 
 
-
-
-
-
-
-
 def recall_at_k(y_true, y_pred, k=40):
     """
       Calculate the recall at k for a given list of true items and a list of predicted items.

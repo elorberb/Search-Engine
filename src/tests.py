@@ -1,5 +1,6 @@
 import unittest
 from backend import *
+from bm25 import *
 
 
 class MyTestCase(unittest.TestCase):
@@ -85,7 +86,6 @@ class MyTestCase(unittest.TestCase):
             print(items[i])
         self.assertEqual(True, True)
 
-
     def test_page_view(self):
         back = Backend()
         items = back.page_view.items()
@@ -95,6 +95,19 @@ class MyTestCase(unittest.TestCase):
         for i in range(5):
             print(items[i])
         self.assertEqual(True, True)
+
+    def test_bm25(self):
+        back = Backend()
+        query = "similarity laws must obeyed when constructing aeroelastic models of heated high speed aircraft"
+        query = back.tokenize(query)
+        bm25_text = BM25(back.text_index, back.DL, back)
+        bm25_title = BM25(back.title_index, back.DL, back)
+        bm25_score = bm25_text.search(back, query)
+        bm25_score_title = bm25_title.search(back, query)
+        print(bm25_score)
+        print(bm25_score_title)
+        self.assertEqual(True, True)
+
 
 
 
