@@ -67,14 +67,12 @@ class MyTestCase(unittest.TestCase):
         print(sorted_lst_tuples)
         self.assertEqual(True, True)
 
-
     def test_map_docId_to_title(self):
         back = Backend()
         query = "hello world"
         query = back.tokenize(query)
         print(back.title_index.term_total)
         self.assertEqual(True, True)
-
 
     def test_page_rank(self):
         back = Backend()
@@ -108,9 +106,10 @@ class MyTestCase(unittest.TestCase):
         print(bm25_score_title)
         self.assertEqual(True, True)
 
-
-
-
+    def test_id2title(self):
+        back = Backend()
+        print(back.id2title[0])
+        self.assertEqual(True, True)
 
 
 if __name__ == '__main__':

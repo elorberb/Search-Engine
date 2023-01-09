@@ -31,11 +31,13 @@ class Backend:
         self.anchor_index = inverted.read_index(indices_path, 'index_anchor')
         self.page_rank = pd.read_pickle(page_rank_path)
         self.page_view = inverted.read_index(pages_path, 'pageviews')
+        self.id2title = inverted.read_index(pages_path, 'id2title')
 
         self.N = len(self.text_index.DL)
         self.DL = self.text_index.DL
 
-    def tokenize(self, text):
+    @staticmethod
+    def tokenize(text):
         """
         This function aims in tokenize a text into a list of tokens. Moreover, it filter stopwords.
 
@@ -88,7 +90,8 @@ class Backend:
                     pass
         return Q
 
-    def get_posting_iter(self, index):
+    @staticmethod
+    def get_posting_iter(index):
         """
         This function returning the iterator working with posting list.
 
@@ -165,7 +168,8 @@ class Backend:
 
         return D
 
-    def cosine_similarity(self, D, Q):
+    @staticmethod
+    def cosine_similarity(D, Q):
         """
         Calculate the cosine similarity for each candidate document.
         Generate a dictionary of cosine similarity scores
