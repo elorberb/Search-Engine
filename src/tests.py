@@ -12,7 +12,8 @@ class MyTestCase(unittest.TestCase):
 
     def test_generate_query_tfidf_vector(self):
         back = Backend()
-        query = "hello world"
+        query = "similarity laws must obeyed when constructing aeroelastic models of heated high speed aircraft"
+        query = back.tokenize(query)
         query_tfidf = back.generate_query_tfidf_vector(query, back.text_index)
         nonzero_indices = query_tfidf.nonzero()
         print(nonzero_indices)
