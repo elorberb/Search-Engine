@@ -82,7 +82,6 @@ class Backend:
                 tf = counter[token] / len(query)  # term frequency divded by the length of the query
                 df = index.df[token]
                 idf = math.log(self.N / (df + epsilon), 10)  # smoothing
-
                 try:
                     ind = term_vector.index(token)
                     Q[ind] = tf * idf
