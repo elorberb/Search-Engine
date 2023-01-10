@@ -90,7 +90,7 @@ def search_title():
         return jsonify(res)
 
     # BEGIN SOLUTION
-    res = calc_search_title(query, 100)
+    res = calc_search_title_or_anchor(query, 'title', 100)
     # END SOLUTION
     return jsonify(res)
 
@@ -119,7 +119,7 @@ def search_anchor():
     if len(query) == 0:
         return jsonify(res)
     # BEGIN SOLUTION
-    res = calc_search_anchor(query, 100)
+    res = calc_search_title_or_anchor(query, 'anchor', 100)
     # END SOLUTION
     return jsonify(res)
 

@@ -84,6 +84,26 @@ Inverted index, it's nice!
         print(bm25_score_title)
         self.assertEqual(True, True)
 
+    def test_final_bm25(self):
+        query = "best marvel movie"
+        scores = calc_bm25(query, text_index)
+        print(scores)
+        self.assertEqual(True, True)
+
+    def test_eval_retrieve(self):
+        evaluate_retrieve()
+        self.assertEqual(True, True)
+
+    def test_word_embed(self):
+        model = KeyedVectors.load_word2vec_format("../crawl-300d-2M.vec")
+        print(type(model))
+        self.assertEqual(True, True)
+
+
+
+
+
+
 
 
 

@@ -207,9 +207,11 @@ def evaluate_all_metrics(y_true, y_pred, k, print_scores=True):
 
     scores = {name: [] for name in metrices}
 
-    for ground_true, predicted in zip(y_true, y_pred):
-        for name, metric in metrices.items():
-            scores[name].append(metric(ground_true, predicted, k=k))
+    for name, metric in metrices.items():
+        if name == 'r-precision':
+            scores[name].append(metric(y_true, y_pred))
+        else:
+            scores[name].append(metric(y_true, y_pred, k=k))
 
     if print_scores:
         for name, values in scores.items():

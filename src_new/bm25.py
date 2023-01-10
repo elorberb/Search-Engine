@@ -78,7 +78,7 @@ class BM25:
                 pass
         return idf
 
-    def search(self, query, N=3):
+    def search(self, query, N=100):
         """
         This function calculate the bm25 score for given query and document.
         We need to check only documents which are 'candidates' for a given query.
