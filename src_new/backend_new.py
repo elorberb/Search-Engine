@@ -7,6 +7,10 @@ from nltk.corpus import stopwords
 from inverted_index_colab import *
 import math
 from typing import List, Dict, Tuple
+from bm25 import *
+from metrics import *
+from gensim.models import KeyedVectors
+
 
 pages_path = r'C:\Users\elorberb\PycharmProjects\BGU projects\Search-Engine\src_new\pages'
 indices_path = r'C:\Users\elorberb\PycharmProjects\BGU projects\Search-Engine\src_new\indexes'
@@ -51,7 +55,7 @@ def tokenize(text: str) -> List[str]:
 
 def get_doc_id_by_count(query: str, index: InvertedIndex, root_path: str) -> List[int]:
     """
-    Retrieve the documents relevant to the given query by the count of occurrences of the query terms in the document.
+    Retrieve the documents relevant to the given query by the count of unique occurrences of the query terms in the document.
 
     Parameters:
     - query (str): The query to search for.
@@ -94,7 +98,7 @@ def get_posting(index: InvertedIndex, token: str, root_path: str) -> List[Tuple[
     return posting_list
 
 
-def calc_idf(index: dict, token: str) -> float:
+def calc_idf(index: InvertedIndex, token: str) -> float:
     """Calculate the IDF of a token in an index."""
     return np.log10(num_of_docs / (index.df[token]))
 
@@ -110,7 +114,7 @@ def update_token_tfidf(idf: float, tokens: list, token: str, QL: float) -> float
     return calc_tfidf(tf, idf, QL)
 
 
-def get_query_and_docs_tfidf(tokens: list, index: dict, QL: float, root_path: str) -> tuple:
+def get_query_and_docs_tfidf(tokens: list, index: InvertedIndex, QL: float, root_path: str) -> tuple:
     """Calculate the TF-IDF scores of tokens in a query and documents."""
     query = {}
     docs = defaultdict(list)
@@ -167,38 +171,26 @@ def calc_search_body(query: str, N: int = 100) -> List[Tuple[int, str]]:
     return map_doc_id2title(docs_id)[:N]
 
 
-def calc_search_title(query: str, N: int = 100) -> List[Tuple[int, str]]:
+def calc_search_title_or_anchor(query: str, index_type: str, N: int = 100) -> List[Tuple[int, str]]:
     """
-    Searches for documents with title index containing the given query.
+    Searches for documents with title or anchor containing the given query.
     Calculation made by the count of occurrences of the query terms in the document.
 
     Parameters:
         query (str): The search query.
+        index_type (str): specifies the type of search to be done, either "title" or "anchor"
         N (int, optional): The maximum number of results to return. Defaults to 100.
 
     Returns:
         List[Tuple[int, str]]: A list of (document ID, title) tuples.
     """
     query = tokenize(query)
-    docs_id = get_doc_id_by_count(query, title_index, SRC_PATH)
+    if index_type == "title":
+        docs_id = get_doc_id_by_count(query, title_index, SRC_PATH)
+    else:
+        docs_id = get_doc_id_by_count(query, anchor_index, SRC_PATH)
     return map_doc_id2title(docs_id)[:N]
 
-
-def calc_search_anchor(query: str, N: int = 100) -> List[Tuple[int, str]]:
-    """
-    Searches for documents with title index containing the given query.
-    Calculation made by the count of occurrences of the query terms in the document.
-
-    Parameters:
-        query (str): The search query.
-        N (int, optional): The maximum number of results to return. Defaults to 100.
-
-    Returns:
-        List[Tuple[int, str]]: A list of (document ID, title) tuples.
-    """
-    query = tokenize(query)
-    docs_id = get_doc_id_by_count(query, anchor_index, SRC_PATH)
-    return map_doc_id2title(docs_id)[:N]
 
 # ----- Pages Functions ------
 
@@ -229,3 +221,48 @@ def get_page_rank(docs_id: List[str]) -> List[int]:
     """
     values = [page_rank[doc_id] for doc_id in docs_id]
     return values
+
+
+def convert_bm25_score_to_title_and_id(scores: List[Tuple[int, float]]) -> List[Tuple[str, int]]:
+    """
+    Given a list of tuples representing document scores, where each tuple contains
+    a document ID and a BM25 score, returns a list of tuples where each tuple
+    contains the title of the document and its ID.
+    """
+    doc_ids = map_tuple2doc_id(scores)
+    return map_doc_id2title(doc_ids)
+
+
+def calc_bm25(query: str, index: InvertedIndex, N=100) -> List[Tuple[str, int]]:
+    """
+    Given a query string and a index of tokenized documents, returns a list of tuples where each tuple
+    contains the title of the document and its ID, sorted by relevance to the query as determined by BM25 ranking.
+    """
+    query = tokenize(query)
+    bm25_index = BM25(index, DL)
+    bm25_score = bm25_index.search(query, N)
+    return convert_bm25_score_to_title_and_id(bm25_score)
+
+
+def map_tuple2doc_id(scores: List[Tuple]) -> List[int]:
+    """
+    Given a list of tuples, where each tuple contains a document ID and a score,
+    returns a list of the document IDs.
+    """
+    return [t[0] for t in scores]
+
+
+def evaluate_retrieve(measurement: str, index: InvertedIndex, k: int):
+    test_queries = json.loads(open("../extra_files/queries_train.json").read())  # Save the json queries
+    test_results = {}
+    if measurement == 'bm25':
+        measurement_func = calc_bm25
+    elif measurement == 'tfidf':
+        measurement_func = calc_search_body
+    else:
+        measurement_func = calc_search_title_or_anchor
+    for test_query in test_queries:
+        query = test_query[0]
+        y_true = test_queries[1]
+        y_pred = map_tuple2doc_id(measurement_func(query, index, len(y_true)))
+        test_results[query] = evaluate_all_metrics(y_true, y_pred, k=k)
