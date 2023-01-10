@@ -180,7 +180,7 @@ def average_precision(y_true, y_prod, k=40):
     if relevant == 0:
         return 0
     # Calculate and return the Average Precision
-    return round(total / relevent, 3)
+    return round(total / relevant, 3)
 
 
 def evaluate_all_metrics(y_true, y_pred, k, print_scores=True):

@@ -1,7 +1,7 @@
 import math
 from itertools import chain
 import time
-from backend import *
+from backend_new import *
 
 
 class BM25:
@@ -14,7 +14,7 @@ class BM25:
     index: inverted index
     """
 
-    def __init__(self, index, DL, back,  k1=1.5, b=0.75):
+    def __init__(self, index, DL, k1=1.5, b=0.75):
         self.b = b
         self.k1 = k1
         self.index = index
@@ -22,7 +22,38 @@ class BM25:
         self.N = len(DL)
         self.AVGDL = sum(DL.values()) / self.N
         self.words, self.pls = zip(*self.index.posting_lists_iter())
-        self.back = back
+
+    def get_candidate_documents_and_scores(self, query, index, words, pls):
+        """
+        Generate a dictionary representing a pool of candidate documents for a given query. This function will go through every token in query_to_search
+        and fetch the corresponding information (e.g., term frequency, document frequency, etc.') needed to calculate TF-IDF from the posting list.
+        Then it will populate the dictionary 'candidates.'
+        For calculation of IDF, use log with base 10.
+        tf will be normalized based on the length of the document.
+
+        Parameters:
+        -----------
+        query: list of tokens in the query
+        index: inverted index loaded from the corresponding files.
+        words,pls: iterator for working with posting.
+
+        Returns:
+        -----------
+        dictionary of candidates. In the following format:
+        key: pair (doc_id,term)
+        value: tfidf score.
+        """
+        candidates = {}
+        for term in np.unique(query):
+            if term in words:
+                list_of_doc = pls[words.index(term)]
+                normlized_tfidf = [(doc_id, (freq / self.DL[doc_id]) * math.log(len(self.DL) / index.df[term], 10)) for
+                                   doc_id, freq in list_of_doc]
+
+                for doc_id, tfidf in normlized_tfidf:
+                    candidates[(doc_id, term)] = candidates.get((doc_id, term), 0) + tfidf
+
+        return candidates
 
     def calc_idf(self, list_of_tokens):
         """
@@ -47,7 +78,7 @@ class BM25:
                 pass
         return idf
 
-    def search(self, back, query, N=3):
+    def search(self, query, N=3):
         """
         This function calculate the bm25 score for given query and document.
         We need to check only documents which are 'candidates' for a given query.
@@ -66,7 +97,7 @@ class BM25:
         """
         self.idf = self.calc_idf(query)
         # get relevant canidate docs
-        candidate_docs_and_tfidf = back.get_candidate_documents_and_scores(query, self.index, self.words, self.pls)
+        candidate_docs_and_tfidf = self.get_candidate_documents_and_scores(query, self.index, self.words, self.pls)
         candidate_docs = [key[0] for key in candidate_docs_and_tfidf.keys()]
         # for each doc add score for query and add to scores dict
         score = [(doc_id, self._score(query, doc_id)) for doc_id in np.unique(candidate_docs)]

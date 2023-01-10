@@ -1,6 +1,6 @@
 import unittest
 from backend import *
-from bm25 import *
+from src_new.bm25 import *
 
 
 class MyTestCase(unittest.TestCase):
@@ -51,18 +51,27 @@ class MyTestCase(unittest.TestCase):
 
     def test_search_body(self):
         back = Backend()
-        query = "similarity laws must obeyed when constructing aeroelastic models of heated high speed aircraft"
+        query = "best marvel movie"
         query = back.tokenize(query)
         score_text = back.search_body(query, 10)
 
         print(f"Text index scores:\n{score_text}")
         self.assertEqual(True, True)
 
-    def test_get_anchor(self):
+    def test_search_anchor(self):
         back = Backend()
         query = "hello world"
         query = back.tokenize(query)
-        sorted_lst_tuples = back.calc_anchor(query)
+        sorted_lst_tuples = back.search_anchor(query)
+
+        print(sorted_lst_tuples)
+        self.assertEqual(True, True)
+
+    def test_search_title(self):
+        back = Backend()
+        query = "hello world"
+        query = back.tokenize(query)
+        sorted_lst_tuples = back.search_title(query)
 
         print(sorted_lst_tuples)
         self.assertEqual(True, True)
@@ -76,27 +85,21 @@ class MyTestCase(unittest.TestCase):
 
     def test_page_rank(self):
         back = Backend()
-        items = back.page_rank.items()
-        items = list(items)
+        items = back.get_page_rank([30680, 5843419])
 
-        # Print the first 5 key-value pairs
-        for i in range(5):
-            print(items[i])
+        print(items)
         self.assertEqual(True, True)
 
     def test_page_view(self):
         back = Backend()
-        items = back.page_view.items()
-        items = list(items)
+        items = back.get_page_view([30680, 5843419])
 
-        # Print the first 5 key-value pairs
-        for i in range(5):
-            print(items[i])
+        print(items)
         self.assertEqual(True, True)
 
     def test_bm25(self):
         back = Backend()
-        query = "similarity laws must obeyed when constructing aeroelastic models of heated high speed aircraft"
+        query = "best marvel movie"
         query = back.tokenize(query)
         bm25_text = BM25(back.text_index, back.DL, back)
         bm25_title = BM25(back.title_index, back.DL, back)
@@ -109,6 +112,15 @@ class MyTestCase(unittest.TestCase):
     def test_id2title(self):
         back = Backend()
         print(back.id2title[0])
+        self.assertEqual(True, True)
+
+    def test_get_title_tuples(self):
+        back = Backend()
+        query = "similarity laws must obeyed when constructing aeroelastic models of heated high speed aircraft"
+        query = back.tokenize(query)
+        scores_text = back.search_body(query, 10)
+        results = back.get_title_id_tuples(scores_text)
+        print(results)
         self.assertEqual(True, True)
 
 

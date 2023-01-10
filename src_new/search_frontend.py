@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify
-from backend import *
+from backend_new import *
 
 
 class MyFlaskApp(Flask):
@@ -90,7 +90,7 @@ def search_title():
         return jsonify(res)
 
     # BEGIN SOLUTION
-    res = backend.get_title(query)
+    res = calc_search_title(query, 100)
     # END SOLUTION
     return jsonify(res)
 
@@ -119,7 +119,7 @@ def search_anchor():
     if len(query) == 0:
         return jsonify(res)
     # BEGIN SOLUTION
-
+    res = calc_search_anchor(query, 100)
     # END SOLUTION
     return jsonify(res)
 
@@ -145,7 +145,7 @@ def get_pagerank():
     if len(wiki_ids) == 0:
         return jsonify(res)
     # BEGIN SOLUTION
-
+    res = get_pagerank(wiki_ids)
     # END SOLUTION
     return jsonify(res)
 
@@ -173,7 +173,7 @@ def get_pageview():
     if len(wiki_ids) == 0:
         return jsonify(res)
     # BEGIN SOLUTION
-
+    res = get_pageview(wiki_ids)
     # END SOLUTION
     return jsonify(res)
 

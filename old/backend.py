@@ -6,7 +6,7 @@ import nltk
 from nltk.corpus import stopwords
 import re
 import os
-from src.inverted_index_colab import *
+from old_version.inverted_index_colab import *
 import pandas as pd
 import numpy as np
 from collections import defaultdict
@@ -20,7 +20,7 @@ class Backend:
            Put super indexes and relevent files in main memory to save time during queries
            """
 
-        indices_path = r'C:\Users\elorberb\PycharmProjects\BGU projects\Search-Engine\src\indexes'
+        indices_path = r'/src_new/indexes'
 
         page_rank_path = r'C:\Users\elorberb\PycharmProjects\BGU projects\Search-Engine\src\pages\page_rank.pickle'
         pages_path = r'C:\Users\elorberb\PycharmProjects\BGU projects\Search-Engine\src\pages'
@@ -32,6 +32,7 @@ class Backend:
         self.page_rank = pd.read_pickle(page_rank_path)
         self.page_view = inverted.read_index(pages_path, 'pageviews')
         self.id2title = inverted.read_index(pages_path, 'id2title')
+        self.id2title = {t[0]: t[1] for t in self.id2title}  # convert to dict
 
         self.N = len(self.text_index.DL)
         self.DL = self.text_index.DL
@@ -213,7 +214,7 @@ class Backend:
         sim_dict = self.cosine_similarity(doc_matrix, query_vector)  # cosine similarity
         top_n = sorted([(doc_id, round(score, 5)) for doc_id, score in sim_dict.items()], key=lambda x: x[1],
                        reverse=True)[:N]
-        return top_n  # return score for top N
+        return self.get_title_id_tuples(top_n)  # return score for top N
 
     def count_words_in_index(self, query, kind='title'):
         """
@@ -263,7 +264,19 @@ class Backend:
         """
         return self.count_words_in_index(query, kind='anchor')[:N]
 
-    def get_page_view(self, doc_ids):
+    def get_title_id_tuples(self, scores):
+        """
+        Get a list of tuples containing the document id and title for a list of (id, score) tuples.
+
+        Parameters:
+        scores (List[Tuple[int, float]]): The list of (id, score) tuples to get the title for.
+
+        Returns:
+        List[Tuple[int, str]]: The list of (id, title) tuples.
+        """
+        return [(doc_id, self.id2title[doc_id]) for doc_id, _ in scores]
+
+    def get_page_view(self, docs_id):
         """
         Return a list of page views for the specified document IDs.
 
@@ -273,10 +286,10 @@ class Backend:
         Returns:
         - values: list of page views for the specified document IDs
         """
-        values = [self.page_view[doc_id] for doc_id in doc_ids]
+        values = [self.page_view[doc_id] for doc_id in docs_id]
         return values
 
-    def get_page_rank(self, doc_ids):
+    def get_page_rank(self, docs_id):
         """
         Return a list of page ranks for the specified document IDs.
 
@@ -286,5 +299,5 @@ class Backend:
         Returns:
         - values: list of page ranks for the specified document IDs
         """
-        values = [self.page_rank[doc_id] for doc_id in doc_ids]
+        values = [self.page_rank[doc_id] for doc_id in docs_id]
         return values
