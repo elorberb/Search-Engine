@@ -266,3 +266,33 @@ def evaluate_retrieve(measurement: str, index: InvertedIndex, k: int):
         y_true = test_queries[1]
         y_pred = map_tuple2doc_id(measurement_func(query, index, len(y_true)))
         test_results[query] = evaluate_all_metrics(y_true, y_pred, k=k)
+
+
+def expand_query(original_query: List[str], word2vec: KeyedVectors, expansion_len_factor: int = 2) -> Set[str]:
+    """
+    This function expand the original query by including similar words based on the given word vectors model.
+
+    Parameters:
+    original_query (List[str]): The list of words representing the original query.
+    word2vec (KeyedVectors): The word vectors model that will be used to determine the similar words.
+    expansion_len_factor (int): The number of similar words to be included in the expanded query for each query word (default 2).
+
+    Returns:
+    Set[str]: Set of words representing the expanded query
+    """
+    expanded_query = set()
+    for query_term in original_query:
+        if query_term in word2vec:
+            similar_terms = word2vec.most_similar(query_term, topn=len(original_query) * expansion_len_factor)
+            for term, _ in similar_terms:
+                expanded_query.add(term)
+        expanded_query.add(query_term)
+    return expanded_query
+
+
+def calc_search_body(query):
+    if len(query) == 1:
+        return get_doc_id_by_binary_count(query, title_index, SRC_PATH)
+    else:
+        query = expand_query(query, word2vec)
+        return calc_search_body(query)
