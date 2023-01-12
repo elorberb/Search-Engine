@@ -258,7 +258,7 @@ def evaluate_retrieve(measurement: str, index: InvertedIndex, k: int):
     if measurement == 'bm25':
         measurement_func = calc_bm25
     elif measurement == 'tfidf':
-        measurement_func = calc_search_body
+        measurement_func = calc_search
     else:
         measurement_func = calc_search_title_or_anchor
     for test_query in test_queries:
@@ -290,7 +290,7 @@ def expand_query(original_query: List[str], word2vec: KeyedVectors, expansion_le
     return expanded_query
 
 
-def calc_search_body(query):
+def calc_search(query):
     if len(query) == 1:
         return get_doc_id_by_binary_count(query, title_index, SRC_PATH)
     else:

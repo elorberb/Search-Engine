@@ -53,7 +53,7 @@ Inverted index, it's nice!
 
     def test_search_body(self):
         query = "similarity laws must obeyed when constructing aeroelastic models of heated high speed aircraft"
-        vals = calc_search_body(query)
+        vals = calc_search(query)
         print(vals[:5])
         self.assertEqual(True, True)  # add assertion here
 
@@ -97,6 +97,12 @@ Inverted index, it's nice!
     def test_word_embed(self):
         model = KeyedVectors.load_word2vec_format("../crawl-300d-2M.vec")
         print(type(model))
+        self.assertEqual(True, True)
+
+    def test_search(self):
+        query = "best marvel movie"
+        scores = search(query)
+        print(scores)
         self.assertEqual(True, True)
 
 
