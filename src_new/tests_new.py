@@ -4,9 +4,7 @@ from bm25 import *
 #
 #
 class MyTestCase(unittest.TestCase):
-    def test_something(self):
-        print(DL)
-        self.assertEqual(True, True)  # add assertion here
+
 
 #     def test_get_relevant_docs_id(self):
 #         query = "similarity laws must obeyed when constructing aeroelastic models of heated high speed aircraft"
@@ -57,17 +55,17 @@ class MyTestCase(unittest.TestCase):
         print(vals[:5])
         self.assertEqual(True, True)  # add assertion here
 
-    # def test_search_title(self):
-    #     query = "similarity laws must obeyed when constructing aeroelastic models of heated high speed aircraft"
-    #     vals = calc_search_title(query)
-    #     print(vals)
-    #     self.assertEqual(True, True)  # add assertion here
-    #
-    # def test_search_anchor(self):
-    #     query = 'hello world'
-    #     vals = calc_search_anchor(query)
-    #     print(vals)
-    #     self.assertEqual(True, True)  # add assertion here
+    def test_search_title(self):
+        query = "similarity laws must obeyed when constructing aeroelastic models of heated high speed aircraft"
+        vals = calc_search_title_or_anchor(query, 'title')
+        print(vals[:5])
+        self.assertEqual(True, True)  # add assertion here
+
+    def test_search_anchor(self):
+        query = 'hello world'
+        vals = calc_search_title_or_anchor(query)
+        print(vals)
+        self.assertEqual(True, True)  # add assertion here
     #
     # def test_id2title(self):
     #     print(len(id2title.keys()))

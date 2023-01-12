@@ -8,7 +8,8 @@ import pickle as pkl
 
 # gs://bodyindex2/postings_gcp/inverted_index_text.pkl
 
-class ReadPostingsCloud:
+
+class ReadBucketData:
 
     def __init__(self, bucket_name):
         self.TUPLE_SIZE = 6
@@ -21,7 +22,7 @@ class ReadPostingsCloud:
         blob = self.bucket.get_blob(source)
         blob.download_to_filename(dest)
 
-    def get_pickle_file(self,source, dest):
+    def get_pickle_file(self, source, dest):
         if dest not in os.listdir("."):
             self.download_from_buck(source, dest)
         with open(dest, "rb") as f:
