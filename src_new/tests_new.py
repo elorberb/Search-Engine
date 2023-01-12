@@ -9,8 +9,7 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(True, True)  # add assertion here
 
     def test_get_relevant_docs_id(self):
-        query = "similarity laws must obeyed when constructing aeroelastic models of heated high speed aircraft"
-        a = """
+        query = """
         Verse 1:
 Inverted index, oh so fine
 It stores words, one at a time
@@ -47,7 +46,8 @@ Find what you need, in a row
 Five words, appear at least twice
 Inverted index, it's nice!
         """
-        ids = get_doc_id_by_count(a, title_index, SRC_PATH)
+        query = tokenize(query)
+        ids = get_doc_id_by_count(query, title_index, SRC_PATH)
         print(ids[:5])
         self.assertEqual(True, True)  # add assertion here
 

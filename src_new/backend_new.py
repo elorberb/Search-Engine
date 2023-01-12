@@ -294,5 +294,5 @@ def calc_search(query):
     if len(query) == 1:
         return get_doc_id_by_binary_count(query, title_index, SRC_PATH)
     else:
-        query = expand_query(query, word2vec)
+        # query = expand_query(query, word2vec, 3)
         return calc_search_body(query)
