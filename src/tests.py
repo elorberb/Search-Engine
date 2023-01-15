@@ -1,10 +1,6 @@
 import unittest
 from backend import *
-from bm25 import *
 from time import time
-from metrics import *
-from search_functions import *
-from retrievel_functions import *
 
 
 class MyTestCase(unittest.TestCase):
