@@ -222,3 +222,69 @@ def evaluate_all_metrics(y_true, y_pred, k, print_scores=True):
             print(name, sum(values) / len(values))
 
     return scores
+
+
+# ---- Evaluating Functions --------
+
+
+# The Average precision function given for test Search funcs
+def average_precision(true_list, predicted_list, k=40):
+    true_set = frozenset(true_list)
+    predicted_list = predicted_list[:k]
+    precisions = []
+    for i, doc_id in enumerate(predicted_list):
+        if doc_id in true_set:
+            prec = (len(precisions) + 1) / (i + 1)
+            precisions.append(prec)
+    if len(precisions) == 0:
+        return 0.0
+    return round(sum(precisions) / len(precisions), 3)
+
+
+def test_search_funcs_average_precision(func, queries):
+    qs_res = []
+    for q, true_wids in queries.items():
+        duration, ap = None, None
+        true_wids = list(map(int, true_wids))
+        t_start = tm()
+        pred_wids = func(q)
+        duration = tm() - t_start
+        ap = average_precision(true_wids, pred_wids)
+        qs_res.append((q, duration, ap))
+    scores = [x[2] for x in qs_res]
+    times = [x[1] for x in qs_res]
+    mean_score = sum(scores) / len(scores)
+    mean_time = sum(times) / len(times)
+    print(f"mean score: {mean_score}")
+    print(f"mean times: {mean_time}")
+    print(f"total time: {sum(times)}")
+    print(f'ansewr per each q: {qs_res}')
+    return mean_score, mean_time
+
+
+def mean_scores(dicts):
+    mean_scores_dict = defaultdict(float)
+    count_scores_dict = defaultdict(int)
+    for d in dicts:
+        query, time, scores_dict = d
+        for key in scores_dict.keys():
+            mean_scores_dict[key] += scores_dict[key][0]
+            count_scores_dict[key] += 1
+    for key in mean_scores_dict.keys():
+        mean_scores_dict[key] /= count_scores_dict[key]
+    return mean_scores_dict
+
+
+def test_search_funcs_all_metrices(func, queries):
+    qs_res = []
+    for q, true_wids in queries.items():
+        duration, ap = None, None
+        true_wids = list(map(int, true_wids))
+        t_start = tm()
+        pred_wids = func(q)
+        duration = tm() - t_start
+        scores = evaluate_all_metrics(true_wids, pred_wids, k=40, print_scores=False)
+        qs_res.append((q, duration, scores))
+    mean_score = mean_scores(qs_res)
+    print(f'Average scores over all queries: {mean_score}')
+    return qs_res, mean_score
