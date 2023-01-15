@@ -1,6 +1,8 @@
-
-
 # ------ Search Functions ----------
+
+def calc_search(query: str):
+    return search_v5(query)
+
 
 def calc_search_title(query: str):
     query = tokenize(query)
@@ -26,7 +28,6 @@ def calc_search_body(query: str):
 
 
 def calc_search_body_stem(query: str):
-
     query = tokenize(query, stem=True)
     QL = len(query)
     QL_norm = np.linalg.norm(QL)
@@ -72,7 +73,7 @@ def search_v1(query):
     doc_ids_title = calc_search_title(query)
     doc_ids_body = calc_search_body(query)
     doc_ids_anchor = calc_search_anchor(query)
-    mutual_docs_ids = set(doc_ids_title) | set(doc_ids_body) |set(doc_ids_anchor)
+    mutual_docs_ids = set(doc_ids_title) | set(doc_ids_body) | set(doc_ids_anchor)
     mutual_docs_ids = list(mutual_docs_ids)
     for doc_id in mutual_docs_ids:
         try:
@@ -89,7 +90,7 @@ def search_v2(query):
     doc_ids_title = calc_search_title(query)
     doc_ids_body = calc_search_body(query)
     doc_ids_anchor = calc_search_anchor(query)
-    mutual_docs_ids = set(doc_ids_title) | set(doc_ids_body) |set(doc_ids_anchor)
+    mutual_docs_ids = set(doc_ids_title) | set(doc_ids_body) | set(doc_ids_anchor)
     mutual_docs_ids = list(mutual_docs_ids)
     for doc_id in mutual_docs_ids:
         scores_by_page_views.append((doc_id, page_views[doc_id]))
