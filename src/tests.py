@@ -1,5 +1,5 @@
 import unittest
-from backend_new import *
+from backend import *
 from bm25 import *
 
 
@@ -104,16 +104,6 @@ Inverted index, it's nice!
         scores = search(query)
         print(scores)
         self.assertEqual(True, True)
-
-
-
-
-
-
-
-
-
-
 
 
 

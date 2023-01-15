@@ -1,5 +1,6 @@
 from flask import Flask, request, jsonify
-from backend_new import *
+from backend import *
+from search_functions import *
 
 
 class MyFlaskApp(Flask):
@@ -34,8 +35,7 @@ def search():
     if len(query) == 0:
         return jsonify(res)
     # BEGIN SOLUTION
-    # res = backend.main_search(query)
-
+    res = calc_search(query)
     # END SOLUTION
     return jsonify(res)
 
@@ -61,8 +61,7 @@ def search_body():
     if len(query) == 0:
         return jsonify(res)
     # BEGIN SOLUTION
-    res = backend.preprocess(query)
-    res = backend.get_body(res)
+    res = calc_search_body(query)
     # END SOLUTION
     return jsonify(res)
 
@@ -90,7 +89,7 @@ def search_title():
         return jsonify(res)
 
     # BEGIN SOLUTION
-    res = calc_search_title_or_anchor(query, 'title', 100)
+    res = calc_search_title(query)
     # END SOLUTION
     return jsonify(res)
 
@@ -119,7 +118,7 @@ def search_anchor():
     if len(query) == 0:
         return jsonify(res)
     # BEGIN SOLUTION
-    res = calc_search_title_or_anchor(query, 'anchor', 100)
+    res = calc_search_anchor(query)
     # END SOLUTION
     return jsonify(res)
 
@@ -145,7 +144,7 @@ def get_pagerank():
     if len(wiki_ids) == 0:
         return jsonify(res)
     # BEGIN SOLUTION
-    res = get_pagerank(wiki_ids)
+    res = get_page_rank(wiki_ids)
     # END SOLUTION
     return jsonify(res)
 
@@ -173,7 +172,7 @@ def get_pageview():
     if len(wiki_ids) == 0:
         return jsonify(res)
     # BEGIN SOLUTION
-    res = get_pageview(wiki_ids)
+    res = get_page_view(wiki_ids)
     # END SOLUTION
     return jsonify(res)
 
