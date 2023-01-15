@@ -8,7 +8,6 @@ from nltk.corpus import stopwords
 from gensim.models import KeyedVectors
 from nltk.util import ngrams
 from collections import defaultdict
-import matplotlib.pyplot as plt
 from typing import List, Dict, Tuple
 import numpy as np
 from itertools import combinations
