@@ -168,12 +168,12 @@ def search_bm25_body_stem(query: str):
 
 
 # ------- Page Views and Page Rank Functions
-def get_page_view(docs_id: List[str]) -> List[int]:
+def get_page_view(docs_id: List[str]) -> List[float]:
     values = [page_view.get(doc_id, 0) for doc_id in docs_id]
     return values
 
 
-def get_page_rank(docs_id: List[str]) -> List[int]:
+def get_page_rank(docs_id: List[str]) -> List[float]:
     values = [page_rank.get(doc_id, 0) for doc_id in docs_id]
     return values
 
