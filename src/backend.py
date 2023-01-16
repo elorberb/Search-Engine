@@ -12,11 +12,8 @@ from itertools import combinations
 import math
 from itertools import chain
 import time
-import struct
-import os
-from google.cloud import storage
-from contextlib import closing
-import pickle as pkl
+
+from bucket_manipulation import *
 
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = r"amazing-badge-343010-879c0a90f001.json"
 
@@ -137,7 +134,7 @@ def calc_search_body(query: str):
     QL = len(query)
     QL_norm = np.linalg.norm(QL)
     query_tfidf, docs_tfidf = get_query_and_docs_tfidf(query, text_index, QL_norm, TEXT_BUCKET)
-    cosine_sim = calc_cosine_similarity(query_tfidf, docs_tfidf, QL_norm, text_index)
+    cosine_sim = calc_cosine_similarity(query_tfidf, docs_tfidf, QL_norm)
     docs_id = get_docs_id_ordered_by_cosine_similarity(cosine_sim)
 
     return docs_id[:100]
@@ -148,7 +145,7 @@ def calc_search_body_stem(query: str):
     QL = len(query)
     QL_norm = np.linalg.norm(QL)
     query_tfidf, docs_tfidf = get_query_and_docs_tfidf(query, text_stem_index, QL_norm, TEXT_STEM_BUCKET)
-    cosine_sim = calc_cosine_similarity(query_tfidf, docs_tfidf, QL_norm, text_stem_index)
+    cosine_sim = calc_cosine_similarity(query_tfidf, docs_tfidf, QL_norm)
     docs_id = get_docs_id_ordered_by_cosine_similarity(cosine_sim)
 
     return docs_id[:100]

@@ -1,6 +1,5 @@
 from flask import Flask, request, jsonify
 from backend import *
-from search_functions import *
 
 
 class MyFlaskApp(Flask):
@@ -36,6 +35,7 @@ def search():
         return jsonify(res)
     # BEGIN SOLUTION
     res = calc_search(query)
+    res = map_doc_id2title(res)
     # END SOLUTION
     return jsonify(res)
 
@@ -62,6 +62,7 @@ def search_body():
         return jsonify(res)
     # BEGIN SOLUTION
     res = calc_search_body(query)
+    res = map_doc_id2title(res)
     # END SOLUTION
     return jsonify(res)
 
@@ -90,6 +91,7 @@ def search_title():
 
     # BEGIN SOLUTION
     res = calc_search_title(query)
+    res = map_doc_id2title(res)
     # END SOLUTION
     return jsonify(res)
 
@@ -119,6 +121,7 @@ def search_anchor():
         return jsonify(res)
     # BEGIN SOLUTION
     res = calc_search_anchor(query)
+    res = map_doc_id2title(res)
     # END SOLUTION
     return jsonify(res)
 
