@@ -114,7 +114,11 @@ def get_docs_id_ordered_by_cosine_similarity(cosine_sim: Dict[int, float]) -> Li
 # ------ Search Functions ----------
 
 def calc_search(query: str):
-    return search_v5(query)
+    try:
+        res = search_v5(query)
+    except:
+        res = []
+    return res
 
 
 def calc_search_title(query: str):
