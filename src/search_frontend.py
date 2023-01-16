@@ -1,5 +1,6 @@
 from flask import Flask, request, jsonify
 from backend import *
+import requests
 
 
 class MyFlaskApp(Flask):
@@ -147,7 +148,6 @@ def get_pagerank():
     if len(wiki_ids) == 0:
         return jsonify(res)
     # BEGIN SOLUTION
-    res = requests.post('http://92.168.1.108:8080/get_pageview', json=wiki_ids)
     res = get_page_rank(res)
     # END SOLUTION
     return jsonify(res)
@@ -176,7 +176,6 @@ def get_pageview():
     if len(wiki_ids) == 0:
         return jsonify(res)
     # BEGIN SOLUTION
-    res = requests.post('http://92.168.1.108:8080/get_pageview', json=[wiki_ids])
     res = get_page_view(res)
     # END SOLUTION
     return jsonify(res)
