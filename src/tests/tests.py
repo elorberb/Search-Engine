@@ -34,7 +34,7 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(True, True)  # add assertion here
 
     def test_calc_search_body(self):
-        with open('../extra_files/queries_train.json', 'rt') as f:
+        with open('../../extra_files/queries_train.json', 'rt') as f:
             queries = json.load(f)
         qs_res = []
         for q, true_wids in queries.items():
@@ -51,7 +51,7 @@ class MyTestCase(unittest.TestCase):
         print(qs_res)
 
     def test_calc_search_body_stem(self):
-        with open('../extra_files/queries_train.json', 'rt') as f:
+        with open('../../extra_files/queries_train.json', 'rt') as f:
             queries = json.load(f)
         qs_res = []
         for q, true_wids in queries.items():
@@ -77,7 +77,7 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(True, True)  # add assertion here
 
     def test_calc_search_anchor(self):
-        with open('../extra_files/queries_train.json', 'rt') as f:
+        with open('../../extra_files/queries_train.json', 'rt') as f:
             queries = json.load(f)
         qs_res = []
         for q, true_wids in queries.items():
@@ -95,7 +95,7 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(True, True)  # add assertion here
 
     def test_calc_search_title(self):
-        with open('../extra_files/queries_train.json', 'rt') as f:
+        with open('../../extra_files/queries_train.json', 'rt') as f:
             queries = json.load(f)
         qs_res = []
         for q, true_wids in queries.items():
@@ -113,7 +113,7 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(True, True)  # add assertion here
 
     def test_calc_search_anchor_double(self):
-        with open('../extra_files/queries_train.json', 'rt') as f:
+        with open('../../extra_files/queries_train.json', 'rt') as f:
             queries = json.load(f)
         qs_res = []
         for q, true_wids in queries.items():

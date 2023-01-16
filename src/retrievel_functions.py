@@ -32,7 +32,7 @@ def get_query_and_docs_tfidf(tokens: list, index: InvertedIndex, QL: float, buck
     return query, docs
 
 
-def calc_cosine_similarity(query_tfidf: dict, docs_tfidf: dict, QL: float, index: InvertedIndex) -> dict:
+def calc_cosine_similarity(query_tfidf: dict, docs_tfidf: dict, QL: float) -> dict:
     """Calculate the cosine similarity between a query and documents."""
     cosine_sim = {}
     for token, val in docs_tfidf.items():
