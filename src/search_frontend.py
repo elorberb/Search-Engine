@@ -147,7 +147,8 @@ def get_pagerank():
     if len(wiki_ids) == 0:
         return jsonify(res)
     # BEGIN SOLUTION
-    res = get_page_rank(wiki_ids)
+    res = requests.post('http://92.168.1.108:8080/get_pageview', json=wiki_ids)
+    res = get_page_rank(res)
     # END SOLUTION
     return jsonify(res)
 
@@ -175,7 +176,8 @@ def get_pageview():
     if len(wiki_ids) == 0:
         return jsonify(res)
     # BEGIN SOLUTION
-    res = get_page_view(wiki_ids)
+    res = requests.post('http://92.168.1.108:8080/get_pageview', json=wiki_ids)
+    res = get_page_view(res)
     # END SOLUTION
     return jsonify(res)
 
