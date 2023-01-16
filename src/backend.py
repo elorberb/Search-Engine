@@ -20,7 +20,7 @@ os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = r"amazing-badge-343010-879c0a90f0
 # Bucket names
 TEXT_BUCKET = 'body_text_no_stem'
 TEXT_STEM_BUCKET = 'body_stem'
-TITLE_BUCKET = 'tile_no_stem'
+TITLE_BUCKET = 'title_bucket4'
 ANCHOR_BUCKET = 'anchor_bucket3'
 ANCHOR_DOUBLE_BUCKET = 'double_anchor_index'
 EXTRA_FILES_BUCKET = 'extra_files_search'
