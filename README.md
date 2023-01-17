@@ -1,6 +1,6 @@
 # Search-Engine Project
 
-This project aims to create a search engine that operates on Wikipedia data, leveraging techniques like cosine similarity and tf-idf, as well as utilizing pre-trained models like word2vec.
+This is a university project aims to create a search engine that operates on Wikipedia data, leveraging techniques like cosine similarity and tf-idf, as well as utilizing pre-trained models like word2vec.
 The project is divided into several modules, each one with a unique responsibility that contributes to the overall functionality. The modules are:
 ###  <u>backend.py</u>
 code for downloading the indexes and other relevant files from our BUCKETS.
